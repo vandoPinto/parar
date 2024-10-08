@@ -66,7 +66,7 @@
     <h1>Acompanhamento para Parar de Fumar</h1>
 
     <button id="smokeButton">Fumei um cigarro</button>
-    <div id="timer">0</div> <!-- Exibe o cronômetro aqui -->
+    <div id="timer">00:00:00</div> <!-- Exibe o cronômetro aqui -->
 
     <div class="stat">Cigarros fumados hoje: <span id="todayCount">0</span></div>
     <div class="stat">Cigarros fumados na semana: <span id="weekCount">0</span></div>
@@ -113,7 +113,8 @@
                 reductionCount,
                 lastCigaretteTime: lastCigaretteTime ? lastCigaretteTime.toISOString() : null,
                 peakTime,
-                cigaretteTimes: document.getElementById("logBody").innerHTML // Armazena os horários
+                cigaretteTimes: document.getElementById("logBody").innerHTML, // Armazena os horários
+                timerSeconds // Salva o estado do cronômetro
             };
             localStorage.setItem('smokingData', JSON.stringify(data));
         };
@@ -129,6 +130,8 @@
                 lastCigaretteTime = data.lastCigaretteTime ? new Date(data.lastCigaretteTime) : null;
                 peakTime = data.peakTime || {};
                 document.getElementById("logBody").innerHTML = data.cigaretteTimes || ''; // Restaura os horários
+                timerSeconds = data.timerSeconds || 0; // Carrega o tempo do cronômetro
+                document.getElementById("timer").innerText = formatTime(timerSeconds); // Exibe o tempo carregado
             }
         };
 
@@ -172,18 +175,33 @@
             const newRow = `<tr><td>${timeFormatted}</td></tr>`;
             document.getElementById("logBody").insertAdjacentHTML('beforeend', newRow);
 
-            // Zera o cronômetro ao fumar um cigarro
-            timerSeconds = 0;
+            // Salva a hora do cigarro fumado
+            timerSeconds = Math.floor((new Date() - lastCigaretteTime) / 1000); // Calcula o tempo desde o cigarro
+            updateTimer(); // Atualiza o cronômetro com o novo tempo
 
             updateStats();
             updateHealthBenefits();
             checkGoal();
         };
 
+        const formatTime = (seconds) => {
+            const hours = Math.floor(seconds / 3600).toString().padStart(2, '0');
+            const minutes = Math.floor((seconds % 3600) / 60).toString().padStart(2, '0');
+            const secs = (seconds % 60).toString().padStart(2, '0');
+            return `${hours}:${minutes}:${secs}`;
+        };
+
+        const updateTimer = () => {
+            document.getElementById("timer").innerText = formatTime(timerSeconds); // Atualiza o cronômetro
+            clearInterval(timerInterval); // Limpa qualquer intervalo anterior
+            startTimer(); // Reinicia o cronômetro
+        };
+
         const startTimer = () => {
             timerInterval = setInterval(() => {
                 timerSeconds++;
-                document.getElementById("timer").innerText = timerSeconds; // Atualiza o cronômetro
+                document.getElementById("timer").innerText = formatTime(timerSeconds); // Atualiza o cronômetro
+                saveData(); // Salva o tempo do cronômetro
             }, 1000); // Atualiza a cada segundo
         };
 
@@ -191,34 +209,31 @@
             const timeSinceLastCigarette = lastCigaretteTime ? Math.round((new Date() - lastCigaretteTime) / 60000) : 0;
 
             if (timeSinceLastCigarette >= 20 && timeSinceLastCigarette < 60) {
-                document.getElementById("healthInfo").innerText = "Após 20 minutos: A frequência cardíaca começa a cair.";
+                document.getElementById("healthInfo").innerText = "Após 20 minutos, sua pressão arterial e pulsação começam a voltar ao normal.";
             } else if (timeSinceLastCigarette >= 60 && timeSinceLastCigarette < 1440) {
-                document.getElementById("healthInfo").innerText = "Após 24 horas: O risco de ataque cardíaco começa a diminuir.";
+                document.getElementById("healthInfo").innerText = "Após 1 hora, o risco de ataque cardíaco começa a diminuir.";
             } else if (timeSinceLastCigarette >= 1440) {
-                document.getElementById("healthInfo").innerText = "Após 48 horas: Seu olfato e paladar começam a melhorar.";
+                document.getElementById("healthInfo").innerText = "Após 1 dia, o risco de ataque cardíaco continua a diminuir.";
             } else {
-                document.getElementById("healthInfo").innerText = "Fique sem fumar para ver os benefícios aparecerem!";
+                document.getElementById("healthInfo").innerText = "Fique firme! Cada hora sem fumar é uma vitória.";
             }
         };
 
         const checkGoal = () => {
-            if (todayCount <= dailyLimit) {
-                document.getElementById("motivationMessage").innerText = "Ótimo trabalho! Continue assim!";
+            if (todayCount >= dailyLimit) {
+                document.getElementById("motivationMessage").innerText = "Você alcançou sua meta diária! Continue assim!";
             } else {
-                document.getElementById("motivationMessage").innerText = "Você ultrapassou a meta de hoje. Tente reduzir o consumo amanhã.";
+                document.getElementById("motivationMessage").innerText = "";
             }
         };
 
-        // Carrega os dados ao iniciar a página
         window.onload = () => {
             loadData();
             updateStats();
-            updateHealthBenefits();
-            checkGoal();
-            startTimer(); // Inicia o cronômetro ao carregar a página
+            startTimer(); // Inicia o cronômetro
         };
 
-        document.getElementById("smokeButton").addEventListener("click", recordCigarette);
+        document.getElementById("smokeButton").onclick = recordCigarette;
     </script>
 
 </body>
