@@ -12,24 +12,13 @@
             padding: 20px;
         }
 
-        #smokeButton,
-        #waitButton {
+        #smokeButton {
             font-size: 20px;
             padding: 15px 30px;
             margin: 10px;
             cursor: pointer;
             border: none;
-            /* border-radius: 50%;  */
-            /* Botões redondos */
-        }
-
-        #smokeButton {
             background-color: red;
-            color: white;
-        }
-
-        #waitButton {
-            background-color: green;
             color: white;
         }
 
@@ -42,6 +31,15 @@
         #motivationMessage {
             margin-top: 20px;
             font-weight: bold;
+        }
+
+        #timer {
+            font-size: 36px;
+            /* Aumenta o tamanho do cronômetro */
+            color: black;
+            /* Define a cor do texto do cronômetro */
+            margin-top: 10px;
+            /* Adiciona espaço acima do cronômetro */
         }
 
         table {
@@ -68,7 +66,7 @@
     <h1>Acompanhamento para Parar de Fumar</h1>
 
     <button id="smokeButton">Fumei um cigarro</button>
-    <button id="waitButton">Começar a contar tempo sem fumar</button>
+    <div id="timer">0</div> <!-- Exibe o cronômetro aqui -->
 
     <div class="stat">Cigarros fumados hoje: <span id="todayCount">0</span></div>
     <div class="stat">Cigarros fumados na semana: <span id="weekCount">0</span></div>
@@ -78,7 +76,6 @@
     <div class="stat">Economia mensal estimada: R$ <span id="monthlySavings">0.00</span></div>
     <div class="stat">Intervalo desde o último cigarro: <span id="interval">-</span> minutos</div>
     <div class="stat">Hora que mais fuma: <span id="peakTime">-</span></div>
-    <div class="stat">Tempo sem fumar: <span id="timer">0</span> minutos</div>
 
     <div id="healthInfo">Fique sem fumar para ver os benefícios aparecerem!</div>
     <div id="motivationMessage"></div>
@@ -102,10 +99,10 @@
         let reductionCount = 0;
         let lastCigaretteTime = null;
         let peakTime = {};
-        let startTime = new Date();
-        let cigaretteCost = .4375; // Custo estimado por cigarro
+        let cigaretteCost = 0.4375; // Preço do cigarro
         let dailyLimit = 5; // Meta de redução de cigarros por dia
         let timerInterval = null;
+        let timerSeconds = 0;
 
         // Função para salvar dados no localStorage
         const saveData = () => {
@@ -116,7 +113,6 @@
                 reductionCount,
                 lastCigaretteTime: lastCigaretteTime ? lastCigaretteTime.toISOString() : null,
                 peakTime,
-                startTime: startTime ? startTime.toISOString() : null,
                 cigaretteTimes: document.getElementById("logBody").innerHTML // Armazena os horários
             };
             localStorage.setItem('smokingData', JSON.stringify(data));
@@ -132,7 +128,6 @@
                 reductionCount = data.reductionCount;
                 lastCigaretteTime = data.lastCigaretteTime ? new Date(data.lastCigaretteTime) : null;
                 peakTime = data.peakTime || {};
-                startTime = data.startTime ? new Date(data.startTime) : new Date();
                 document.getElementById("logBody").innerHTML = data.cigaretteTimes || ''; // Restaura os horários
             }
         };
@@ -177,19 +172,19 @@
             const newRow = `<tr><td>${timeFormatted}</td></tr>`;
             document.getElementById("logBody").insertAdjacentHTML('beforeend', newRow);
 
+            // Zera o cronômetro ao fumar um cigarro
+            timerSeconds = 0;
+
             updateStats();
             updateHealthBenefits();
             checkGoal();
         };
 
-        const startWaitTimer = () => {
-            clearInterval(timerInterval);
-            startTime = new Date();
+        const startTimer = () => {
             timerInterval = setInterval(() => {
-                const currentTime = new Date();
-                const minutes = Math.floor((currentTime - startTime) / 60000);
-                document.getElementById("timer").innerText = minutes;
-            }, 60000);
+                timerSeconds++;
+                document.getElementById("timer").innerText = timerSeconds; // Atualiza o cronômetro
+            }, 1000); // Atualiza a cada segundo
         };
 
         const updateHealthBenefits = () => {
@@ -220,10 +215,10 @@
             updateStats();
             updateHealthBenefits();
             checkGoal();
+            startTimer(); // Inicia o cronômetro ao carregar a página
         };
 
         document.getElementById("smokeButton").addEventListener("click", recordCigarette);
-        document.getElementById("waitButton").addEventListener("click", startWaitTimer);
     </script>
 
 </body>
