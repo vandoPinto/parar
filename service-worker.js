@@ -1,7 +1,7 @@
 const CACHE_NAME = 'smoking-tracker-v1';
 const urlsToCache = [
     '/',
-    '/index.html',
+    '/parar/index.html',
     '/manifest.json',
     '/style.css', // Se você tiver um arquivo CSS separado
     '/script.js', // Se você tiver um arquivo JavaScript separado

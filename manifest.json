@@ -1,7 +1,7 @@
 {
     "name": "Acompanhamento para Parar de Fumar",
     "short_name": "Parar de Fumar",
-    "start_url": "/index.html",
+    "start_url": "/parar/index.html",
     "display": "standalone",
     "background_color": "#ffffff",
     "theme_color": "#ffffff",
